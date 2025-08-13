@@ -1,10 +1,10 @@
-// build.js
 import path from 'path';
 import pc from 'picocolors';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { build } from 'vite';
 import compile from './private/tsc.js';
+import cpx from 'cpx';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,6 +33,19 @@ console.log(pc.blue('Transpiling renderer & main...'));
 Promise.allSettled([
     buildRenderer(),
     buildMain(),
-]).then(() => {
-    console.log(pc.green('Renderer & main successfully transpiled! (ready to be built with electron-builder)'));
+]).then(async () => {
+    console.log(pc.green('Renderer & main successfully transpiled!'));
+
+    // Copier le Prisma Client généré dans le build
+    const source = path.join(__dirname, '..', 'src', 'generated', 'prisma', '**/*');
+    const dest = path.join(__dirname, '..', 'build', 'generated', 'prisma');
+
+    cpx.copy(source, dest, (err) => {
+        if (err) {
+            console.error(pc.red('Erreur lors de la copie de Prisma Client:'), err);
+            process.exit(1);
+        }
+        console.log(pc.green('Prisma Client copied to build/generated/prisma'));
+        console.log(pc.green('Build ready for electron-builder!'));
+    });
 });

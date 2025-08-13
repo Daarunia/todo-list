@@ -17,9 +17,9 @@ datasource db {
 // entity "Tâches"
 model Task {
   id          Int      @id @default(autoincrement())
-  row         Int
-  version     Int
+  stage         String
+  version     String
   description String
-  status      Int
-  redmine     String?
+  status      String
+  redmine     Int?
 }

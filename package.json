@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "node scripts/dev-server.js",
     "build": "node scripts/build.js && electron-builder",
+    "build:dev": "node scripts/build.js",
     "build:win": "node scripts/build.js && electron-builder --win",
     "build:mac": "node scripts/build.js && electron-builder --mac",
     "build:linux": "node scripts/build.js && electron-builder --linux"
@@ -21,6 +22,7 @@
     "@vitejs/plugin-vue": "^6.0.1",
     "autoprefixer": "^10.4.21",
     "chokidar": "^4.0.3",
+    "cpx": "^1.5.0",
     "electron": "^37.2.6",
     "electron-builder": "^26.0.12",
     "prisma": "^6.13.0",
@@ -29,6 +31,8 @@
     "vite": "^7.0.6"
   },
   "dependencies": {
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.3",
     "@prisma/client": "^6.13.0",
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/vite": "^4.1.11",
