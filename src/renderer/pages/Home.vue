@@ -1,18 +1,34 @@
 <script setup lang="ts">
-import Kanban from '../components/Kanban.vue' 
+import { ref, onMounted } from 'vue'
+import Kanban from '../components/Kanban.vue'
+import { useTaskStore } from '../stores/Task';
+import type { Task } from '../stores/Task';
+import { useLogger } from 'vue-logger-plugin'
+
+/**
+ * Logger
+ */
+const logger = useLogger();
+
+/**
+ * Liste des tâches
+ */
+const taskStore = useTaskStore()
+const tasks = ref<Task[]>([])
+
+/**
+ * Récupération des tâches
+ */
+onMounted(async () => {
+  tasks.value = await taskStore.fetchAllTasks()
+  logger.debug("tasks", tasks.value)
+})
 </script>
 
 <template>
-  <Kanban :stages=" ['A faire', 'En attente', 'En cours', 'Terminé']" :tasks="[
-    {
-      id: 1,
-      stage: 'En attente',
-      title: 'Test',
-    },
-    {
-      id: 2,
-      stage: 'En attente',
-      title: 'Prout',
-    }
-  ]"></Kanban>
+  <div class="h-full">
+    <div class="flex justify-center mt-8 h-80">
+      <Kanban :stages="['A faire', 'En attente', 'En cours', 'Terminé']" :tasks="tasks" />
+    </div>
+  </div>
 </template>

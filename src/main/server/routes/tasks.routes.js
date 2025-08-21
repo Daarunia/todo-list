@@ -21,7 +21,7 @@ export default async function taskRoutes(fastify) {
       stage: { type: 'string' },
       version: { type: 'string' },
       description: { type: 'string' },
-      status: { type: 'string' },
+      title: { type: 'string' },
       redmine: { type: 'integer', nullable: true },
     },
   };

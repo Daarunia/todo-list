@@ -20,6 +20,6 @@ model Task {
   stage         String
   version     String
   description String
-  status      String
   redmine     Int?
+  title       String
 }

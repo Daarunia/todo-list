@@ -1,11 +1,15 @@
 import { app, BrowserWindow, ipcMain, session } from "electron";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import Fastify from "fastify";
 import { startServer } from "./server/index.js";
+import dotenv from 'dotenv'
+import path from 'path'
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(__filename)
+
+// Configuration du env
+dotenv.config({ path: path.join(__dirname, '../../.env') })
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
