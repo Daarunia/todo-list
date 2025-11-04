@@ -3,6 +3,8 @@ import { createPinia } from 'pinia'
 import './style.css';
 import App from './App.vue'
 import { createLogger } from "vue-logger-plugin";
+import PrimeVue from 'primevue/config';
+import Button from "primevue/button"
 
 const app = createApp(App);
 const pinia = createPinia()
@@ -15,4 +17,6 @@ const logger = createLogger({
 
 app.use(pinia);
 app.use(logger);
+app.use(PrimeVue);
+app.component('Button', Button);
 app.mount('#app');

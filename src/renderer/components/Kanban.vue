@@ -7,8 +7,9 @@
       <!-- Draggable pour les tâches de cette colonne -->
       <draggable :list="taskLists[stage]" group="tasks" itemKey="id" class="flex flex-col" @end="onTasksDrop">
         <template #item="{ element }">
-          <div class="rounded-md p-2 mb-2 shadow-md cursor-move bg-gray-600">
+          <div class="group draggable-item">
             <strong>{{ element.title }}</strong>
+            <i class=" pi pi-trash draggable-trash" style="font-size: 1rem"></i>
           </div>
         </template>
       </draggable>
@@ -20,7 +21,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { useLogger } from 'vue-logger-plugin'
 import { useTaskStore } from '../stores/Task'
 import type { Task } from '../stores/Task'
