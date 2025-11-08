@@ -129,6 +129,32 @@ export const useTaskStore = defineStore("task", {
     },
 
     /**
+     * Création d'une tâche
+     * @param task Tâche à créer
+     */
+    async saveTask(task: Omit<Task, "id">): Promise<Task> {
+      try {
+        const res = await axios.post<Task>(`${this.baseUrl}/tasks`, task);
+        const newTask = res.data;
+
+        // Mise à jour du cache
+        this.setTaskCache(newTask.id, newTask);
+
+        if (this.allTasks?.data) {
+          this.allTasks.data.push(newTask);
+          this.allTasks.timestamp = Date.now();
+        } else {
+          this.setAllTasksCache([newTask]);
+        }
+
+        return newTask;
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde de la tâche:", error);
+        throw error;
+      }
+    },
+
+    /**
      * Mise à jour complète d'une tâche à partir d'un objet Task
      * @param task Objet Task avec un id existant
      */

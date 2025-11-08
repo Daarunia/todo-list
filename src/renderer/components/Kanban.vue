@@ -19,13 +19,16 @@
         </draggable>
 
         <div>
-          <Button class="bg-gray-700 w-full" @click="openDialog">Ajouter une tâche</Button>
-          <slot :name="`footer-${stage}`"></slot>
+          <Button class="btn-edit-task"
+            @click="openDialog(stage, taskLists[stage].length)">
+            <i class="pi pi-plus absolute left-3 text-white"></i>
+            <span>Ajouter une tâche</span>
+          </Button>
         </div>
       </div>
     </div>
 
-     <TaskDialog v-model="showDialog" />
+    <TaskDialog v-model="showDialog" :stage="stageDialog" :position="positionDialog" @task-saved="onTaskSaved"/>
   </div>
 </template>
 <script setup lang="ts">
@@ -45,7 +48,10 @@ const props = defineProps<{
 // Logger
 const logger = useLogger()
 
+// Paramètres de boite de dialogue
 const showDialog = ref(false)
+const stageDialog = ref("")
+const positionDialog = ref(0)
 
 /**
  * Mapping des tâches par stage
@@ -57,16 +63,17 @@ const taskLists = ref(Object.fromEntries(
     .sort((a, b) => a.position - b.position)
   ])))
 
-/**
- * Store des tâches
- */
+// Store des tâches
 const taskStore = useTaskStore()
 
 /**
  * Etat d'ouverture de la boite de dialogue
  */
-const openDialog = () => {
+const openDialog = (stage: string, position: number) => {
+  logger.debug('Ouverture de la boite de dialogue : ', { stage: stage, position: position })
   showDialog.value = true
+  stageDialog.value = stage
+  positionDialog.value = position
 }
 
 /**
@@ -107,9 +114,23 @@ function deleteTask(task: Task) {
 
   logger.debug("Suppression de la tâche", task)
 }
+
+/**
+ * Ajout d'une tâche dans la liste aprés sauvegarde
+ * @param task Tâche sauvegardé
+ */
+async function onTaskSaved(task: Task) {
+  taskLists.value[task.stage].push(task)
+  taskLists.value[task.stage].sort((a, b) => a.position - b.position)
+}
 </script>
 <style scoped>
 @reference "tailwindcss";
+
+/* Bouton d'ouverture de la boite de dialogue d'édition  */
+.btn-edit-task {
+  @apply !bg-gray-700 !border-none hover:border-none !text-white hover:!bg-gray-600 w-full flex items-center justify-center relative pl-8
+}
 
 /* Conteneur d’un élément draggable */
 .draggable-item {
