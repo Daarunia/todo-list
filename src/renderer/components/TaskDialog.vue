@@ -1,6 +1,5 @@
 <template>
-    <Dialog v-model:visible="visible" :modal="true" :show-header="false" :draggable="true"
-        class="max-w-md w-full !bg-gray-700">
+    <Dialog v-model:visible="visible" :modal="true" :show-header="false" :draggable="true" class="max-w-md w-full">
         <div class="pt-4 flex flex-col gap-4">
             <!-- Titre -->
             <div class="flex flex-col gap-2 w-full">

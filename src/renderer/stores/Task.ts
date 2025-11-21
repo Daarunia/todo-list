@@ -149,7 +149,7 @@ export const useTaskStore = defineStore("task", {
 
         return newTask;
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde de la tâche:", error);
+        console.error("Erreur lors de la sauvegarde de la tâche : ", error);
         throw error;
       }
     },

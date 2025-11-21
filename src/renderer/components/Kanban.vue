@@ -10,17 +10,22 @@
           <template #item="{ element }">
             <div class="group draggable-item">
               <strong>{{ element.title }}</strong>
-              <Button severity="danger" class="draggable-trash" style="font-size: 1rem" @click="deleteTask(element)"
-                aria-label="Supprimer la tâche">
-                <i class="pi pi-trash text-white"></i>
-              </Button>
+
+              <!-- Boutons de gestion de tâche -->
+              <div class="opacity-100 group-hover:opacity-100 h-6 flex gap-2">
+                <Button severity="primary" class="draggable-button" style="font-size: 1rem" @click="" aria-label="Modifier la tâche">
+                  <i class="pi pi-pencil text-white"></i>
+                </Button>
+                <Button severity="danger" class="draggable-button" style="font-size: 1rem" @click="deleteTask(element)" aria-label="Supprimer la tâche">
+                  <i class="pi pi-trash text-white"></i>
+                </Button>
+              </div>
             </div>
           </template>
         </draggable>
 
         <div>
-          <Button class="btn-edit-task"
-            @click="openDialog(stage, taskLists[stage].length)">
+          <Button class="btn-edit-task" @click="openDialog(stage, taskLists[stage].length)">
             <i class="pi pi-plus absolute left-3 text-white"></i>
             <span>Ajouter une tâche</span>
           </Button>
@@ -28,7 +33,7 @@
       </div>
     </div>
 
-    <TaskDialog v-model="showDialog" :stage="stageDialog" :position="positionDialog" @task-saved="onTaskSaved"/>
+    <TaskDialog v-model="showDialog" :stage="stageDialog" :position="positionDialog" @task-saved="onTaskSaved" />
   </div>
 </template>
 <script setup lang="ts">
@@ -138,8 +143,8 @@ async function onTaskSaved(task: Task) {
 }
 
 /* Icône de suppression affichée au survol */
-.draggable-trash {
-  @apply cursor-pointer opacity-100 group-hover:opacity-100 transition-opacity duration-200;
+.draggable-button {
+  @apply w-6 cursor-pointer transition-opacity duration-200;
 }
 
 /* Conteneur des listes */

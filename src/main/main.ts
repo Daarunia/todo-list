@@ -15,12 +15,16 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    autoHideMenuBar: true,
+    frame: true,
     webPreferences: {
       preload: join(__dirname, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
     },
   });
+
+  mainWindow.maximize();  // Plein écran fenêtré
 
   if (process.env.NODE_ENV === "development") {
     const rendererPort = process.argv[2];
