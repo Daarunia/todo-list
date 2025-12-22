@@ -12,8 +12,8 @@
               <strong>{{ element.title }}</strong>
 
               <!-- Boutons de gestion de tâche -->
-              <div class="opacity-100 group-hover:opacity-100 h-6 flex gap-2">
-                <Button severity="primary" class="draggable-button" style="font-size: 1rem" @click="" aria-label="Modifier la tâche">
+              <div class="opacity-0 group-hover:opacity-100 h-6 flex gap-2">
+                <Button severity="primary" class="draggable-button" style="font-size: 1rem" @click="openEditTaskDialog(stage, taskLists[stage].length, element)" aria-label="Modifier la tâche">
                   <i class="pi pi-pencil text-white"></i>
                 </Button>
                 <Button severity="danger" class="draggable-button" style="font-size: 1rem" @click="deleteTask(element)" aria-label="Supprimer la tâche">
@@ -25,7 +25,7 @@
         </draggable>
 
         <div>
-          <Button class="btn-edit-task" @click="openDialog(stage, taskLists[stage].length)">
+          <Button class="btn-edit-task" @click="openCreateTaskDialog(stage, taskLists[stage].length)">
             <i class="pi pi-plus absolute left-3 text-white"></i>
             <span>Ajouter une tâche</span>
           </Button>
@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <TaskDialog v-model="showDialog" :stage="stageDialog" :position="positionDialog" @task-saved="onTaskSaved" />
+    <TaskDialog v-model="showDialog" :stage="stageDialog" :editTask="editTask" :position="positionDialog" :creationMode="creationMode" @task-saved="onTaskSaved" />
   </div>
 </template>
 <script setup lang="ts">
@@ -57,6 +57,8 @@ const logger = useLogger()
 const showDialog = ref(false)
 const stageDialog = ref("")
 const positionDialog = ref(0)
+const editTask = ref<Task | null>(null)
+const creationMode = ref(true) // True => Création - False => Edition
 
 /**
  * Mapping des tâches par stage
@@ -72,13 +74,26 @@ const taskLists = ref(Object.fromEntries(
 const taskStore = useTaskStore()
 
 /**
- * Etat d'ouverture de la boite de dialogue
+ * Ouverture de la boite de dialogue en mode création
  */
-const openDialog = (stage: string, position: number) => {
-  logger.debug('Ouverture de la boite de dialogue : ', { stage: stage, position: position })
-  showDialog.value = true
+const openCreateTaskDialog = (stage: string, position: number) => {
+  logger.debug('Ouverture de la boite de dialogue en mode création : ', { stage: stage, position: position })
   stageDialog.value = stage
   positionDialog.value = position
+  creationMode.value = true
+  showDialog.value = true
+}
+
+/**
+ * Ouverture de la boite de dialogue en mode création
+ */
+const openEditTaskDialog = (stage: string, position: number, task: Task) => {
+  logger.debug('Ouverture de la boite de dialogue en mode édition : ', { stage: stage, position: position, editTask: editTask })
+  stageDialog.value = stage
+  positionDialog.value = position
+  editTask.value = task
+  creationMode.value = false
+  showDialog.value = true
 }
 
 /**
@@ -121,13 +136,21 @@ function deleteTask(task: Task) {
 }
 
 /**
- * Ajout d'une tâche dans la liste aprés sauvegarde
- * @param task Tâche sauvegardé
+ * Ajout ou mise à jour d'une tâche dans la liste après sauvegarde
+ * @param task Tâche sauvegardée ou mise à jour
  */
 async function onTaskSaved(task: Task) {
-  taskLists.value[task.stage].push(task)
-  taskLists.value[task.stage].sort((a, b) => a.position - b.position)
+  const taskStageList = taskLists.value[task.stage];
+
+  // Si la tâche existe déjà, on remplace la tâche dans la liste. Sinon on l'ajoute à la liste lié.
+  if (creationMode.value) {
+    taskStageList.push(task);
+    taskStageList.sort((a, b) => a.position - b.position);
+  } else {
+    taskStageList[taskStageList.findIndex(t => t.id === task.id)] = task;
+  }
 }
+
 </script>
 <style scoped>
 @reference "tailwindcss";

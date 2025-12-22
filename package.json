@@ -20,11 +20,11 @@
   },
   "devDependencies": {
     "@primevue/auto-import-resolver": "^4.4.1",
-    "@types/node": "^24.3.0",
+    "@types/node": "^25.0.3",
     "@types/sortablejs": "^1.15.8",
     "@vitejs/plugin-vue": "^6.0.1",
     "autoprefixer": "^10.4.21",
-    "chokidar": "^4.0.3",
+    "chokidar": "^5.0.0",
     "cpx": "^1.5.0",
     "electron": "^39.0.0",
     "electron-builder": "^26.0.12",
@@ -38,7 +38,7 @@
     "@fastify/cors": "^11.1.0",
     "@fastify/swagger": "^9.5.1",
     "@fastify/swagger-ui": "^5.2.3",
-    "@primeuix/themes": "^1.2.5",
+    "@primeuix/themes": "^2.0.2",
     "@prisma/client": "^6.14.0",
     "@tailwindcss/postcss": "^4.1.12",
     "@tailwindcss/vite": "^4.1.12",
@@ -55,7 +55,7 @@
     "sortablejs": "^1.15.6",
     "vue": "^3.5.19",
     "vue-logger-plugin": "^2.2.3",
-    "vuedraggable": "^4.1.0",
+    "vuedraggable": "4.1.0",
     "xstate": "^5.20.2"
   }
 }

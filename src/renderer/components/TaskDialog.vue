@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, version, watch } from 'vue'
+import { ref, watch, PropType } from 'vue'
 import Dialog from 'primevue/dialog'
 import type { Task } from '../stores/Task'
 import InputText from 'primevue/inputtext'
@@ -52,13 +52,20 @@ const props = defineProps({
     position: {
         type: Number,
         required: true
+    },
+    editTask: {
+        type: Object as PropType<Task | null | undefined>
+    },
+    creationMode: {
+        type: Boolean,
+        required: true
     }
 })
 
 // Émission d'événement pour le v-model
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'task-saved', task: Task): void
+    (e: 'update:modelValue', value: boolean): void
+    (e: 'task-saved', task: Task): void
 }>()
 
 // Paramètres
@@ -92,13 +99,33 @@ watch(
             // Initialiser les refs locales avec les props
             stage.value = props.stage
             position.value = props.position
-            title.value = ''
-            selectedVersion.value = '1.5.0'
-            description.value = ''
+
+            console.log(props.editTask)
+            console.log(props.creationMode)
+
+            if (props.creationMode) { // Si true => Mode création
+                initDefaultField()
+            } else {
+                // Si  en mode édition, on utilise les valeurs de `editTask` (si défini)
+                if (props.editTask) {
+                    title.value = props.editTask.title
+                    selectedVersion.value = props.editTask.version
+                    description.value = props.editTask.description
+                }
+            }
         }
     }
 )
 watch(visible, (val) => emit('update:modelValue', val))
+
+/**
+ * Initialisation des champs de la boite de dialogue avec les valeurs par défaut
+ */
+function initDefaultField() {
+    title.value = ''
+    selectedVersion.value = '1.5.0'
+    description.value = ''
+}
 
 /**
  * Sauvegarde d'une tâche
@@ -108,20 +135,48 @@ async function saveTask() {
     logger.debug('Début de la sauvegarde de la tâche : ', { stage: stage.value, title: title.value, selectedVersion: selectedVersion.value, position: position.value })
 
     try {
-        const newTask: Omit<Task, "id"> = {
-            stage: stage.value,
-            title: title.value,
-            version: selectedVersion.value,
-            position: position.value,
-            description: description.value || ''
-        }
 
         // Requête de sauvegarde
-        const savedTask = await taskStore.saveTask(newTask)
+        let savedTask;
+
+        if (props.creationMode) {
+            // Création de la nouvelle tâche sans l'ID
+            const newTask: Omit<Task, "id"> = {
+                stage: stage.value,
+                title: title.value,
+                version: selectedVersion.value,
+                position: position.value,
+                description: description.value || ''
+            };
+
+            // Sauvegarde de la nouvelle tâche
+            savedTask = await taskStore.saveTask(newTask);
+            emit('task-saved', savedTask)
+            logger.info('Tâche sauvegardée avec succès', savedTask);
+        } else {
+            // Mise à jour de la tâche existante avec l'ID
+            if (props.editTask) {
+                const updatedTask: Task = {
+                    id: props.editTask.id,  // On récupère l'ID de la tâche existante
+                    stage: stage.value,
+                    title: title.value,
+                    version: selectedVersion.value,
+                    position: position.value,
+                    description: description.value || ''
+                };
+
+                // Mise à jour de la tâche existante
+                console.log(updatedTask)
+                savedTask = await taskStore.updateTask(updatedTask);
+                emit('task-saved', savedTask)
+                logger.info('Tâche mise à jour avec succès', savedTask);
+            } else {
+                logger.error('Tâche à mettre à jour introuvable');
+            }
+        }
 
         // Fermeture de la boite de dialogue
         logger.info('Tâche sauvegardée avec succès', savedTask)
-        emit('task-saved', savedTask)
         emit('update:modelValue', false)
     } catch (error) {
         logger.error('Erreur lors de la sauvegarde de la tâche', error)

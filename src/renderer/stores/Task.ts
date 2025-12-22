@@ -56,7 +56,7 @@ export const useTaskStore = defineStore("task", {
       };
     },
     getAllTasks(state): Task[] | null {
-      console.log((window as any).env.BASE_URL)
+      console.log((window as any).env.BASE_URL);
       if (!state.allTasks) return null;
       const isValid = this.isCacheValid(state.allTasks);
       return isValid ? state.allTasks.data : null;
@@ -88,13 +88,12 @@ export const useTaskStore = defineStore("task", {
 
         // Supprime la tâche du cache allTasks si elle existe
         if (this.allTasks) {
-          const index = this.allTasks.data.findIndex(t => t.id === id);
+          const index = this.allTasks.data.findIndex((t) => t.id === id);
           if (index !== -1) {
             this.allTasks.data.splice(index, 1);
             this.allTasks.timestamp = Date.now();
           }
         }
-
       } catch (error) {
         console.error(`Erreur lors de la suppression de la tâche ${id}:`, error);
         throw error;
@@ -157,31 +156,40 @@ export const useTaskStore = defineStore("task", {
     /**
      * Mise à jour complète d'une tâche à partir d'un objet Task
      * @param task Objet Task avec un id existant
+     * @returns La tâche mise à jour ou une erreur si la mise à jour échoue
      */
-    async updateTask(task: Task): Promise<void> {
+    async updateTask(task: Task): Promise<Task> {
       try {
-        await axios.patch(`${this.baseUrl}/tasks/${task.id}`, task);
+        // Envoi de la requête PATCH pour mettre à jour la tâche sur le serveur
+        const response = await axios.patch(`${this.baseUrl}/tasks/${task.id}`, task);
 
         // Met à jour le cache local
         const existingTask = this.getTaskById(task.id);
         if (existingTask) {
           this.setTaskCache(task.id, { ...task });
+        } else {
+          console.warn("Aucune tâche trouvée dans le cache pour l'ID", task.id);
         }
 
         // Met à jour allTasks si elle existe
         if (this.allTasks?.data) {
-          const index = this.allTasks.data.findIndex(t => t.id === task.id);
+          const index = this.allTasks.data.findIndex((t) => t.id === task.id);
           if (index !== -1) {
+            // Remplace l'ancienne tâche par la mise à jour
             this.allTasks.data[index] = { ...task };
             this.allTasks.timestamp = Date.now();
+          } else {
+            console.warn("Tâche non trouvée dans allTasks pour l'ID", task.id);
           }
         }
+
+        // Retourne la tâche mise à jour pour confirmation
+        return { ...task };
       } catch (error) {
         console.error("Erreur lors de la mise à jour de la tâche:", error);
-        throw error;
+        throw new Error(`Erreur de mise à jour pour la tâche ID ${task.id}: ${error}`);
       }
     },
-
     /**
      * Mise à jour complète d'un ensemble de tâches
      * @param tasks Tableau de Task avec des id existants
@@ -191,7 +199,10 @@ export const useTaskStore = defineStore("task", {
 
       try {
         // Envoi des tâches au serveur pour mise à jour
-        const response = await axios.patch(`${this.baseUrl}/tasks/batch`, tasks);
+        const response = await axios.patch(
+          `${this.baseUrl}/tasks/batch`,
+          tasks
+        );
         const updatedTasks: Task[] = response.data;
 
         // Mise à jour du cache local pour chaque tâche
@@ -202,7 +213,7 @@ export const useTaskStore = defineStore("task", {
           }
 
           if (this.allTasks?.data) {
-            const index = this.allTasks.data.findIndex(t => t.id === task.id);
+            const index = this.allTasks.data.findIndex((t) => t.id === task.id);
             if (index !== -1) {
               this.allTasks.data[index] = { ...task };
             }
@@ -217,6 +228,6 @@ export const useTaskStore = defineStore("task", {
         console.error("Erreur lors de la mise à jour du batch de tâches:", error);
         throw error;
       }
-    }
+    },
   },
 });
