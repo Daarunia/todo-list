@@ -16,7 +16,7 @@
                 <Button severity="primary" class="draggable-button" style="font-size: 1rem" @click="openEditTaskDialog(stage, taskLists[stage].length, element)" aria-label="Modifier la tâche">
                   <i class="pi pi-pencil text-white"></i>
                 </Button>
-                <Button severity="danger" class="draggable-button" style="font-size: 1rem" @click="deleteTask(element)" aria-label="Supprimer la tâche">
+                <Button severity="danger" class="draggable-button" style="font-size: 1rem" @click="archiveTask(element)" aria-label="Supprimer la tâche">
                   <i class="pi pi-trash text-white"></i>
                 </Button>
               </div>
@@ -69,7 +69,7 @@ const taskLists = ref(Object.fromEntries(
     .map(t => ({ ...t }))
     .sort((a, b) => a.position - b.position)
   ])))
-
+console.log(taskLists)
 // Store des tâches
 const taskStore = useTaskStore()
 
@@ -120,19 +120,19 @@ async function onTasksDrop() {
 }
 
 /**
- * Suppression d'une tâche
- * @param task tâche à supprimer
+ * Archivage d'une tâche
+ * @param task tâche à archiver
  */
-function deleteTask(task: Task) {
-  // Suppression de la tache du store
-  taskStore.deleteTask(task.id)
+function archiveTask(task: Task) {
+  // Archivage de la tache du store
+  taskStore.archiveTask(task.id)
 
-  // Met à jour la liste locale pour refléter la suppression
+  // Met à jour la liste locale pour refléter l'archivage
   for (const stage in taskLists.value) {
     taskLists.value[stage] = taskLists.value[stage].filter(t => t.id !== task.id)
   }
 
-  logger.debug("Suppression de la tâche", task)
+  logger.debug("Archivage de la tâche", task)
 }
 
 /**

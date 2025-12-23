@@ -6,24 +6,28 @@ import type { Task } from '../stores/Task';
 import { useLogger } from 'vue-logger-plugin'
 import ProgressSpinner from 'primevue/progressspinner';
 
-//Logger
+// Logger
 const logger = useLogger();
 
 // Liste des tâches
 const taskStore = useTaskStore()
 const tasks = ref<Task[]>([])
 
+// Indicateur de chargement
+const loading = ref(true)
+
 // Récupération des tâches
 onMounted(async () => {
   tasks.value = await taskStore.fetchAllTasks()
-  logger.debug("tasks", tasks.value)
+  logger.debug("Tâches récupérées : ", tasks.value)
+  loading.value = false 
 })
 </script>
 
 <template>
   <div class="h-full">
     <div class="flex justify-center mt-8 h-100">
-      <Kanban v-if="tasks.length !== 0" :stages="['A faire', 'En attente', 'En cours', 'Terminé']" :tasks="tasks" />
+      <Kanban v-if="!loading" :stages="['A faire', 'En attente', 'En cours', 'Terminé']" :tasks="tasks" />
       <ProgressSpinner v-else/>
     </div>
   </div>

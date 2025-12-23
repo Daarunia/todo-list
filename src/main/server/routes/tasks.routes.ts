@@ -24,13 +24,19 @@ export default async function taskRoutes(fastify) {
       title: { type: "string" },
       position: { type: "integer" },
       redmine: { type: "integer", nullable: true },
+      isHistorized: { type: "boolean" },
+      historizationDate: {
+        type: "string",
+        format: "date-time",
+        nullable: true,
+      },
     },
   };
 
   /**
    * GET /tasks
    *
-   * Récupère la liste complète des tâches.
+   * Récupère la liste complète des tâches (non).
    *
    * @returns {Promise<Array<Object>>} Tableau d'objets Task
    */
@@ -45,10 +51,33 @@ export default async function taskRoutes(fastify) {
     },
     async () => {
       return prisma.task.findMany({
-        orderBy: [
-          { stage: "asc" },
-          { position: "asc" },
-        ],
+        orderBy: [{ stage: "asc" }, { position: "asc" }],
+      });
+    }
+  );
+
+  /**
+   * GET /tasks
+   *
+   * Récupère la liste complète des tâches.
+   *
+   * @returns {Promise<Array<Object>>} Tableau d'objets Task
+   */
+  fastify.get(
+    "/tasks/historized",
+    {
+      schema: {
+        description: "Récupère toutes les tâches non historisées",
+        tags: ["Task"],
+        response: { 200: { type: "array", items: taskSchema } },
+      },
+    },
+    async () => {
+      return prisma.task.findMany({
+        where: {
+          isHistorized: true,
+        },
+        orderBy: [{ stage: "asc" }, { position: "asc" }],
       });
     }
   );
@@ -227,6 +256,54 @@ export default async function taskRoutes(fastify) {
   );
 
   /**
+   * PUT /tasks/:id
+   *
+   * Met à jour une tâche en la marquant comme historisée.
+   *
+   * @param {Object} req - Requête Fastify
+   * @param {Object} req.params - Paramètres de la requête
+   * @param {number} req.params.id - ID de la tâche
+   * @param {import('fastify').FastifyReply} reply - Réponse Fastify
+   * @returns {Promise<{message: string}|{error: string}>} Message de succès ou erreur
+   */
+  fastify.put(
+    "/tasks/:id",
+    {
+      schema: {
+        description: "Marque une tâche comme historisée par son ID",
+        tags: ["Task"],
+        params: {
+          type: "object",
+          properties: { id: { type: "integer" } },
+          required: ["id"],
+        },
+        response: {
+          200: { type: "object", properties: { message: { type: "string" } } },
+          404: { type: "object", properties: { error: { type: "string" } } },
+        },
+      },
+    },
+    async (req, reply) => {
+      const id = Number(req.params.id);
+      try {
+        // Mise à jour de la tâche pour la marquer comme historisée
+        const updatedTask = await prisma.task.update({
+          where: { id },
+          data: {
+            isHistorized: true,
+            historizationDate: new Date(),
+          },
+        });
+
+        return { message: `Tâche ${updatedTask.id} marquée comme historisée` };
+      } catch (error) {
+        reply.code(404);
+        return { error: "Tâche non trouvée" };
+      }
+    }
+  );
+
+  /**
    * PATCH /tasks/batch
    *
    * Met à jour plusieurs tâches en une seule requête.
@@ -289,13 +366,15 @@ export default async function taskRoutes(fastify) {
       const tasks = req.body as Array<Partial<PrismaTask> & { id: number }>;
 
       if (!tasks.length) {
-        return reply.status(400).send({ error: "Le tableau de tâches est vide" });
+        return reply
+          .status(400)
+          .send({ error: "Le tableau de tâches est vide" });
       }
 
       try {
         // On fait un update pour chaque tâche, dans une transaction
         const updatedTasks = await prisma.$transaction(
-          tasks.map(t =>
+          tasks.map((t) =>
             prisma.task.update({
               where: { id: t.id },
               data: t,
@@ -306,7 +385,9 @@ export default async function taskRoutes(fastify) {
         return updatedTasks;
       } catch (error) {
         console.error(error);
-        return reply.status(500).send({ error: "Impossible de mettre à jour les tâches" });
+        return reply
+          .status(500)
+          .send({ error: "Impossible de mettre à jour les tâches" });
       }
     }
   );

@@ -17,6 +17,8 @@ export interface Task {
   position: number;
   title: string;
   redmine?: number;
+  isHistorized: boolean;
+  historizationDate?: Date;
 }
 
 interface CacheEntry<T> {
@@ -26,6 +28,7 @@ interface CacheEntry<T> {
 
 interface TaskState {
   tasks: Record<number, CacheEntry<Task>>;
+  historizedTasks: CacheEntry<Task[]> | null;
   allTasks: CacheEntry<Task[]> | null;
   ttl: number;
   lastFetch: number | null;
@@ -35,6 +38,7 @@ interface TaskState {
 export const useTaskStore = defineStore("task", {
   state: (): TaskState => ({
     tasks: {},
+    historizedTasks: null,
     allTasks: null,
     ttl: 5 * MINUTE, // 5 minutes avant de rafraichir
     lastFetch: null,
@@ -55,11 +59,30 @@ export const useTaskStore = defineStore("task", {
         return Date.now() - cache.timestamp <= this.ttl;
       };
     },
+    /**
+     * Getter pour récupérer toutes les tâches non historisées
+     */
     getAllTasks(state): Task[] | null {
-      console.log((window as any).env.BASE_URL);
       if (!state.allTasks) return null;
-      const isValid = this.isCacheValid(state.allTasks);
-      return isValid ? state.allTasks.data : null;
+
+      if (this.isCacheValid(state.allTasks)) {
+        return state.allTasks.data.filter((task) => !task.isHistorized);
+      }
+
+      return null;
+    },
+
+    /**
+     * Getter pour récupérer toutes les tâches historisées
+     */
+    getHistorizedTasks(state): Task[] | null {
+      if (!state.allTasks) return null;
+
+      if (this.isCacheValid(state.allTasks)) {
+        return state.allTasks.data.filter((task) => task.isHistorized);
+      }
+
+      return null;
     },
   },
   actions: {
@@ -73,7 +96,39 @@ export const useTaskStore = defineStore("task", {
     },
 
     /**
-     * * Supprime une tâche par ID
+     * Marque une tâche comme historisée par ID
+     * @param id ID de la tâche à marquer comme historisée
+     */
+    async archiveTask(id: number): Promise<void> {
+      try {
+        await axios.put(`${this.baseUrl}/tasks/${id}`);
+
+        // Met à jour la tâche dans le cache local pour refléter l'état "historisé"
+        if (this.tasks[id]) {
+          this.tasks[id].data.isHistorized = true;
+          this.tasks[id].data.historizationDate = new Date();
+          this.tasks[id].timestamp = Date.now();
+        }
+
+        // Met à jour la tâche dans le cache allTasks si elle existe
+        if (this.allTasks) {
+          const taskIndex = this.allTasks.data.findIndex(
+            (task) => task.id === id
+          );
+          if (taskIndex !== -1) {
+            this.allTasks.data[taskIndex].isHistorized = true;
+            this.allTasks.data[taskIndex].historizationDate = new Date();
+            this.allTasks.timestamp = Date.now(); // Mettre à jour le timestamp du cache global
+          }
+        }
+      } catch (error) {
+        console.error(`Erreur lors de la mise à jour de la tâche ${id}:`, error);
+        throw error;
+      }
+    },
+
+    /**
+     * Supprime une tâche par ID
      * @param id ID de la tâche
      */
     async deleteTask(id: number): Promise<void> {
@@ -95,7 +150,10 @@ export const useTaskStore = defineStore("task", {
           }
         }
       } catch (error) {
-        console.error(`Erreur lors de la suppression de la tâche ${id}:`, error);
+        console.error(
+          `Erreur lors de la suppression de la tâche ${id}:`,
+          error
+        );
         throw error;
       }
     },
@@ -161,7 +219,10 @@ export const useTaskStore = defineStore("task", {
     async updateTask(task: Task): Promise<Task> {
       try {
         // Envoi de la requête PATCH pour mettre à jour la tâche sur le serveur
-        const response = await axios.patch(`${this.baseUrl}/tasks/${task.id}`, task);
+        const response = await axios.patch(
+          `${this.baseUrl}/tasks/${task.id}`,
+          task
+        );
 
         // Met à jour le cache local
         const existingTask = this.getTaskById(task.id);
@@ -187,7 +248,9 @@ export const useTaskStore = defineStore("task", {
         return { ...task };
       } catch (error) {
         console.error("Erreur lors de la mise à jour de la tâche:", error);
-        throw new Error(`Erreur de mise à jour pour la tâche ID ${task.id}: ${error}`);
+        throw new Error(
+          `Erreur de mise à jour pour la tâche ID ${task.id}: ${error}`
+        );
       }
     },
     /**
@@ -225,7 +288,10 @@ export const useTaskStore = defineStore("task", {
           this.allTasks.timestamp = Date.now();
         }
       } catch (error) {
-        console.error("Erreur lors de la mise à jour du batch de tâches:", error);
+        console.error(
+          "Erreur lors de la mise à jour du batch de tâches:",
+          error
+        );
         throw error;
       }
     },

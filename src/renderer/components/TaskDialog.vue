@@ -100,9 +100,6 @@ watch(
             stage.value = props.stage
             position.value = props.position
 
-            console.log(props.editTask)
-            console.log(props.creationMode)
-
             if (props.creationMode) { // Si true => Mode création
                 initDefaultField()
             } else {
@@ -146,7 +143,9 @@ async function saveTask() {
                 title: title.value,
                 version: selectedVersion.value,
                 position: position.value,
-                description: description.value || ''
+                description: description.value || '',
+                isHistorized: false,
+                historizationDate: undefined
             };
 
             // Sauvegarde de la nouvelle tâche
@@ -157,12 +156,14 @@ async function saveTask() {
             // Mise à jour de la tâche existante avec l'ID
             if (props.editTask) {
                 const updatedTask: Task = {
-                    id: props.editTask.id,  // On récupère l'ID de la tâche existante
+                    id: props.editTask.id,
                     stage: stage.value,
                     title: title.value,
                     version: selectedVersion.value,
                     position: position.value,
-                    description: description.value || ''
+                    description: description.value || '',
+                    isHistorized: props.editTask.isHistorized,
+                    historizationDate: props.editTask.historizationDate
                 };
 
                 // Mise à jour de la tâche existante
