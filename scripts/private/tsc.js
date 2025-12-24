@@ -1,4 +1,4 @@
-import { exec } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import pc from "picocolors";
 
 /**
@@ -9,7 +9,7 @@ import pc from "picocolors";
 export default function compile(directory) {
   return new Promise((resolve, reject) => {
     const tscPath = path.join("C:", "nvm4w", "nodejs", "tsc");
-    const tscProcess = exec(tscPath, { cwd: directory });
+    const tscProcess = spawnSync(tscPath, { shell: false });
 
     tscProcess.stdout.on("data", (data) => {
       process.stdout.write(pc.yellow("[tsc] ") + pc.white(data.toString()));
