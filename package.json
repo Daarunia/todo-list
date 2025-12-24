@@ -1,7 +1,7 @@
 {
-  "name": "todo-list",
+  "name": "nexttask",
   "version": "0.1.0",
-  "description": "todo-list",
+  "description": "NextTask",
   "main": "main/main.js",
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
     "build:linux": "node scripts/build.js && electron-builder --linux",
     "prepare": "husky install"
   },
-  "repository": "https://github.com/Daarunia/todo-list",
+  "repository": "https://github.com/Daarunia/NextTask",
   "author": {
     "name": "Maxime Van Eygen",
     "url": "https://github.com/Daarunia"

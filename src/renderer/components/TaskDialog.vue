@@ -205,7 +205,6 @@ async function saveTask() {
       };
 
       // Mise à jour de la tâche existante
-      console.log(updatedTask);
       savedTask = await taskStore.updateTask(updatedTask);
       emit("task-saved", savedTask);
       logger.info("Tâche mise à jour avec succès", savedTask);

@@ -104,7 +104,7 @@ const taskLists = ref(
     ]),
   ),
 );
-console.log(taskLists);
+
 // Store des tâches
 const taskStore = useTaskStore();
 
