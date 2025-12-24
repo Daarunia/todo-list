@@ -11,7 +11,8 @@
     "build:dev": "node scripts/build.js",
     "build:win": "node scripts/build.js && electron-builder --win",
     "build:mac": "node scripts/build.js && electron-builder --mac",
-    "build:linux": "node scripts/build.js && electron-builder --linux"
+    "build:linux": "node scripts/build.js && electron-builder --linux",
+    "prepare": "husky install"
   },
   "repository": "https://github.com/Daarunia/todo-list",
   "author": {
@@ -59,5 +60,8 @@
     "vue-logger-plugin": "^2.2.3",
     "vuedraggable": "4.1.0",
     "xstate": "^5.25.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,vue,json,md,css,vue}": "prettier --write"
   }
 }
